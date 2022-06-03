@@ -1,0 +1,134 @@
+---
+title: "Rmarkdown_Document_Method_and_Results"
+author: "Haizhen_H."
+date: "4/30/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r library ,echo=TRUE}
+library(tidyverse)
+library(reshape2)
+
+```
+<center><h1> Background </h1></center>
+According to the Federal Bureau of Investigation and the Bureau of Justice Statistics,
+
+the crime rate in the United States has declined significantly year by year since the 1990s.
+
+Those
+crime included homicide, rape, robbery, burglary and etc.
+
+My data analysis aimed to examine
+United States crime rate data to verify if it is true that the crime rate is actually decreasing.
+
+
+
+<center><h1> Method </h1></center>
+
+The dataset I chose is named United States Crime Rate that I found from Kaggle which is
+an online platform for Data Sciences and Data Analysis.
+
+The first column is the crime type which include violent, murder, rape and etc.They are strings
+The second column is the identify number which is the primary key to represent the crime type. They are integer.
+The rest of the columns are the year from 1995 to 2018. And they are all integer.
+
+I analyzed my dataset by using a linear model that I aggregate the frequency of crime
+by year. And I tested if the total crime frequency was related to year.
+
+My hypothesis is there exist a linear relationship between year and crime rate that as year increase, the crime rate will be decrease. 
+
+The best visualization to show the relationship is the scatter plot with a line plot of linear model.
+
+
+
+
+### Participants or Observation
+```{r dataset, echo=TRUE}
+load("df.RData")
+df
+```
+
+### Procudure
+```{r procedure, echo=TRUE}
+cleardf <- df %>%
+  na.omit()%>%                                                  
+  melt(id = c("Crime Type","ID")) %>%           
+  rename(Crime_Type = `Crime Type`, Year = variable, Frequency  = value)%>%   
+  mutate(Year = as.numeric(as.character(Year))) %>%      
+  group_by(Year) %>%                            
+  mutate(Total_freq = sum(Frequency)) %>%      
+  select(Year, Total_freq) %>%                  
+  unique()
+cleardf
+
+lin_model <- lm(cleardf$Total_freq~cleardf$Year)   
+
+```
+My first step is to remove the NA from my dataset to make sure integrity, correctness and
+completeness. 
+Next, I used the melt function from the reshape2 package to transform my dataset
+to long format and rename the columns. 
+Because the Year is a factor column so I converted this
+column into character then numeric. 
+Finally, I group the dataset by Year and calculate the total
+crime frequency of all crime types. 
+I removed the duplicated rows to ensure uniqueness. 
+The completed dataset have Year and Total_freq columns.
+
+
+<center><h1> Result </h1></center>
+
+```{r result, echo=TRUE}
+summary(lin_model)
+qqnorm(cleardf$Total_freq)
+
+```
+
+The relevant statistics I was applied is Linear Regression.
+
+This analysis appropriate to my dataset because I want to analyze if there exist a tendency of crime and year that whether the total crime rate will change if the time change.
+
+Linear models assume that the relationship between variables is linear, so met the Linearity assumption.
+Based on the observation from qqnorm plot, my dataset met the normality.
+
+Adjusted R-squared is 0.9043 which means Year can interpret 90.43% of this model 
+
+Therefore the outcome of the linear model indicated there existed a relationship between Year and Total crime frequency of that year.
+
+
+<center><h1> Discussion </h1></center>
+```{r}
+cleardf %>%
+  ggplot(aes(x= Year, y = Total_freq))+
+  geom_point()+
+  geom_abline(slope = coef(lin_model)[2],intercept = coef(lin_model)[1])
+```
+
+Intercept is 744898108 which mean there are 744898108 crime cases happened in the initial year(0 year) for the model.
+
+But it doesn't make sense if we just interpret it separately because the year of dataset is between 1995 - 2018
+
+And the slope of the linear model is -360,760 which means there are an average decreased 360,760 crime
+cases year by year from 1995s to 2018s
+
+
+### Limitation
+
+My dataset only included data of Year, Crime type, and Crime frequency.
+
+And Crime frequency might effect by many other factors than just Year. Like location, income or age, etc.
+
+Even though Year is strongly correlated with Crime frequency, the lack of other factors is
+still a limitation of my data, and we need to keep it in mind when we consider this analysis.
+
+
+
+### Conclusion
+
+Based on my data analysis, we can conclude that there has a tendency between year and crime rate. As increase 1 year, the total crime frequency will decrease 360,760. Two variables are strongly correlated with each other, and result of the linear model proved my hypothesis is correct.
+
+
+<center><h1> References </h1></center>
+<center>**Crime Rate in the US from Kaggle**</center>
+<center>[Kaggle](https://www.kaggle.com/datasets/mathurinache/crimerateintheus)<center>
